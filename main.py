@@ -2,6 +2,8 @@ from typing import Union, Any
 
 from fastapi import FastAPI
 from pydantic import BaseModel
+import inspect
+
 
 from request.processor import RequestEventTaskCommand
 
@@ -22,7 +24,8 @@ async def process_task(request: TaskRequest):
     """
     Processes a task using a predefined sequence of commands.
     """
-    task_command = RequestEventTaskCommand()
+    current_method_name = inspect.currentframe().f_code.co_name
+    task_command = RequestEventTaskCommand(current_method_name)
 
     try:
         # Execute the entire command chain with the request data

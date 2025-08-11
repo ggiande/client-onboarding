@@ -1,13 +1,12 @@
 from typing import List
 
-from request.processor.command import Command
-
+from common.processor import CommandABC
 
 class Invoker:
     def __init__(self):
-        self._commands: List[Command] = []
+        self._commands: List[CommandABC] = []
 
-    def add_command(self, command: Command):
+    def add_command(self, command: CommandABC):
         self._commands.append(command)
 
     def run_all(self) -> List:

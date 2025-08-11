@@ -1,25 +1,25 @@
-from typing import List
-
+from common.processor.event_task_command_abc import EventTaskCommandBaseABC
 from request.processor import RequestInitializeCommand, RequestDataValidateCommand, RequestTransformCommand, \
-    RequestSendCommand, RequestMockCommand
-from request.processor.command import Command
+    RequestSaveCommand, RequestMockCommand
 from request.processor.request_data_enrich_command import RequestDataEnrichCommand
 
 
 # Invoker
-class RequestEventTaskCommand:
-    def __init__(self):
-        self.service_name = "FAST_API"
+class RequestEventTaskCommand(EventTaskCommandBaseABC):
+    def __init__(self, service_name: str):
+        super().__init__(service_name)
         self._commands = [
             RequestInitializeCommand(self.service_name),
             RequestDataValidateCommand(self.service_name),
             RequestDataEnrichCommand(self.service_name),
             RequestTransformCommand(self.service_name),
-            RequestSendCommand(self.service_name),
+            RequestSaveCommand(self.service_name),
             RequestMockCommand(self.service_name)
         ]
 
     def execute(self, data: dict) -> dict:
+        print(f"Executing {self.__class__.__name__} for service {self.service_name}")
+
         print("Starting a sequence of commands...")
         current_data = data.copy() # Work on a copy to avoid side effects
 
