@@ -1,26 +1,16 @@
-from request.processor.command import Command
+from common.processor import TransformCommandBase
 
 
-class RequestTransformCommand(Command):
-    def get_event_region_name(self):
-        pass
+class RequestTransformCommand(TransformCommandBase):
 
-    def handle_exception(self):
-        pass
-
-    def handle_command_execution_exception(cls):
-        pass
-
-    def is_telemetry_turned_on(self):
-        pass
-
-    def post_process(self):
+    def is_command_applicable(self) -> bool:
         pass
 
     def __init__(self, service_name: str):
         self.service_name = service_name
 
-    def execute(self, data: dict) -> dict:
+    def execute(self, data: dict):
+        print(f"Executing {self.__class__.__name__} for service {self.service_name}")
         print("Transforming data...")
         # data['transformed'] = data['some_required_field'].upper()
-        return data
+

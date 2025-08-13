@@ -4,6 +4,8 @@ from typing import Union, Any
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, status, BackgroundTasks
 from pydantic import BaseModel
+import inspect
+
 
 from common.util import Utility
 from constants.constant import Constant
@@ -15,23 +17,15 @@ import os
 
 app = FastAPI()
 
+
+# class Item(BaseModel):
+#     name: str
+#     price: float
+#     is_offer: Union[bool, None] = None
+#
 # class TaskRequest(BaseModel):
 #     some_required_field: str
 #     other_data: Any = None
-
-# @app.post("/process-task/")
-# async def process_task(request: TaskRequest):
-#     """
-#     Processes a task using a predefined sequence of commands.
-#     """
-#     task_command = RequestEventTaskCommand()
-#
-#     try:
-#         # Execute the entire command chain with the request data
-#         result = task_command.execute(request.model_dump())
-#         return {"status": "success", "data": result}
-#     except ValueError as e:
-#         return {"status": "error", "message": str(e)}
 
 @app.post("/trigger-processing/", summary="Manually trigger background CSV file processing")
 async def trigger_processing_pending_product_data(background_tasks: BackgroundTasks):
