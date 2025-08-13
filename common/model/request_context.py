@@ -1,6 +1,6 @@
 """Model Class"""
-from common.model import Status
-from common.model.data_format import DataFormat
+from common.model.enum import Status
+from common.model.enum.data_format import DataFormat
 
 class RequestContext:
     """Stores data of current processing request, 

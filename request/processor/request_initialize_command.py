@@ -20,7 +20,6 @@ class RequestInitializeCommand(InitializeCommandBase):
 
         errors = {}
 
-
         if "username" not in data or not isinstance(data["username"], str):
             errors.setdefault("username", []).append("Username must be a string.")
         if "age" not in data or not isinstance(data["age"], int) or data["age"] < 18:

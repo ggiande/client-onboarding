@@ -3,13 +3,68 @@ import csv
 import shutil
 from typing import Any, Dict, List
 
+from common.model import RequestContext
+from common.model.enum import DataFormat, Status
+from common.model.enum.partner_brand import PartnerBrand
+from request.processor import RequestEventTaskCommand
+
+
 
 class ProcessorService:
     def __init__(self):
         pass
 
     @classmethod
-    def process_csv_in_chunks(self, file, chunk_size=100):
+    def process_all_pending_files_sync(cls, upload_folder: str, service_name: str = "CRON_JOB") -> dict:
+        """
+        Synchronous function to process all CSV files in the upload folder.
+        Designed to be run as a background task.
+        """
+        print(f"Processing task triggered. Scanning {upload_folder}...")
+        files_to_process = [f for f in os.listdir(upload_folder) if f.endswith('.csv')]
+        if not files_to_process:
+            raise "No CSV files found for processing!"
+        processing_summary = []
+        print(f"files_to_process {files_to_process}")
+        for filename in files_to_process:
+            file_path: str = os.path.join(upload_folder, filename)
+            file_results = {"filename": filename, "total_records": 0, "successful_records": 0, "failed_records": 0}
+
+            try:
+                with open(file_path, 'r', newline='') as f:
+                    request_context = cls.get_request_context(f, file_path)
+                    for chunk in cls.process_csv_in_chunks(f, chunk_size=100):
+                            for record_data in chunk:
+                                file_results["total_records"] += 1
+                                task_command = RequestEventTaskCommand(service_name)
+                                try:
+                                    task_command.execute({"context": request_context})
+                                    file_results["successful_records"] += 1
+                                except Exception as e:
+                                    file_results["failed_records"] += 1
+                                    print(
+                                        f"Record processing failed for '{record_data.get('id', 'N/A')}' in '{filename}': {e}")
+
+                # new_file_path = os.path.join(processed_folder, filename)
+                # shutil.move(file_path, new_file_path)
+                file_results["status"] = "processed"
+                # print(f"Successfully processed and moved '{filename}' to {processed_folder}")
+
+            except Exception as e:
+                # new_file_path = os.path.join(error_folder, filename)
+                # shutil.move(file_path, new_file_path)
+                file_results["status"] = "failed"
+                file_results["error_message"] = str(e)
+                # print(f"File '{filename}' failed entire processing due to: {e}. Moved to {error_folder}")
+
+            processing_summary.append(file_results)
+
+        print("Background processing task completed.")
+        return {"summary": processing_summary}
+
+
+    @classmethod
+    def process_csv_in_chunks(cls, file, chunk_size=100):
         reader = csv.DictReader(file)
         chunk = []
         for i, row in enumerate(reader):
@@ -21,54 +76,34 @@ class ProcessorService:
             yield chunk
 
     @classmethod
-    def process_all_pending_files_sync(self, upload_folder: str, processed_folder: str, error_folder: str):
+    def get_request_context(cls, file_path, file_name) -> RequestContext:
+        source = file_name
+        data_format = DataFormat.CSV
+        num_entries = cls.get_entries_in_file(file_path)
+        status = Status.ARRIVED
+        has_exception = False
+        is_partner_brand = cls.is_known_partner_brand(cls.get_brand_name())
+        brand = cls.get_brand_name()
+        return RequestContext(source, data_format, num_entries, status, has_exception, is_partner_brand, brand)
+
+
+    @classmethod
+    def get_entries_in_file(cls, file) -> int:
         """
-        Synchronous function to process all CSV files in the upload folder.
-        Designed to be run as a background task.
+        Counts the number of records in a CSV file-like object and
+        resets the file pointer to the beginning.
         """
-        print(f"Background processing task started. Scanning {upload_folder}...")
+        reader = csv.DictReader(file)
+        count = sum(1 for _ in reader)
+        # after seek, need to revert cursor to beg
+        file.seek(0)
+        return count - 1 # take into account the header
 
-        files_to_process = [f for f in os.listdir(upload_folder) if f.endswith('.csv')]
+    # TODO: IMPLEMENT
+    @classmethod
+    def get_brand_name(cls) -> str:
+        return ""
 
-        if not files_to_process:
-            print("No CSV files found for processing.")
-            return {"message": "No files to process."}
-
-        processing_summary = []
-
-        for filename in files_to_process:
-            file_path = os.path.join(upload_folder, filename)
-            file_results = {"filename": filename, "total_records": 0, "successful_records": 0, "failed_records": 0}
-
-            try:
-                with open(file_path, 'r', newline='') as f:
-                    for chunk in self.process_csv_in_chunks(f, chunk_size=100):
-                        for record_data in chunk:
-                            file_results["total_records"] += 1
-                            context = RequestContext(record=record_data)
-                            task_command = RequestEventTaskCommand()
-
-                            try:
-                                task_command.execute(context)
-                                file_results["successful_records"] += 1
-                            except Exception as e:
-                                file_results["failed_records"] += 1
-                                print(
-                                    f"Record processing failed for '{record_data.get('id', 'N/A')}' in '{filename}': {e}")
-
-                new_file_path = os.path.join(processed_folder, filename)
-                shutil.move(file_path, new_file_path)
-                file_results["status"] = "processed"
-                print(f"Successfully processed and moved '{filename}' to {processed_folder}")
-
-            except Exception as e:
-                new_file_path = os.path.join(error_folder, filename)
-                shutil.move(file_path, new_file_path)
-                file_results["status"] = "failed"
-                file_results["error_message"] = str(e)
-                print(f"File '{filename}' failed entire processing due to: {e}. Moved to {error_folder}")
-
-            processing_summary.append(file_results)
-
-        print("Background processing task completed.")
-        return {"message": "Processing finished.", "summary": processing_summary}
+    @classmethod
+    def is_known_partner_brand(cls, brand_name: str) -> bool:
+        return PartnerBrand.has_value(brand_name)

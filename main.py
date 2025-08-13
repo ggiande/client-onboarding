@@ -15,26 +15,23 @@ from io import StringIO
 import pandas as pd
 import os
 
+from request.processor.processor_service import ProcessorService
+
 app = FastAPI()
 
-
-# class Item(BaseModel):
-#     name: str
-#     price: float
-#     is_offer: Union[bool, None] = None
-#
-# class TaskRequest(BaseModel):
-#     some_required_field: str
-#     other_data: Any = None
-
 @app.post("/trigger-processing/", summary="Manually trigger background CSV file processing")
-async def trigger_processing_pending_product_data(background_tasks: BackgroundTasks):
+async def trigger_processing_pending_product_data():
     """
       Triggers the background process to scan the upload folder and process
       all pending CSV files in batches. The API call will return immediately.
       """
-    background_tasks.add_task(process_all_pending_files_sync)
-    return {"message": "CSV file processing initiated in the background. Check logs for progress."}
+    processor_service = ProcessorService()
+    try:
+        result: dict = processor_service.process_all_pending_files_sync(Constant.UPLOAD_FOLDER, "API")
+    except Exception as e:
+        return {"message": f"Processing failed with an error: {e}"}
+    else:
+        return {"message": "Processing complete.", "summary": result.get("summary", [])}
 
 @app.post("/upload-csv/", summary="Receive CSV Files and store for future batched processing")
 async def upload_csv_file(file: UploadFile = File(...)):
@@ -85,4 +82,3 @@ async def upload_csv_file(file: UploadFile = File(...)):
     # Convert the DataFrame to a list of dictionaries
     # data_as_json = df.to_dict(orient="records")
     return {"message": f"File '{file.filename}' saved successfully!", "file_path": str(file_location)}
-
