@@ -1,20 +1,11 @@
 import shutil
 from pathlib import Path
-from typing import Union, Any
-
-from fastapi import FastAPI, UploadFile, File, HTTPException, status, BackgroundTasks
-from pydantic import BaseModel
-import inspect
-
 
 from common.util import Utility
 from constants.constant import Constant
-from request.processor import RequestEventTaskCommand
 from fastapi import FastAPI, UploadFile, File
-from io import StringIO
-import pandas as pd
-import os
-
+from fastapi import HTTPException, status
+from request.processor import RequestEventTaskCommand
 from request.processor.processor_service import ProcessorService
 
 app = FastAPI()

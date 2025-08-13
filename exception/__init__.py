@@ -2,5 +2,6 @@ from .request_data_validation_exception import RequestDataValidationException
 from .request_data_encrichment_exception import RequestDataEnrichmentException
 from .request_transform_exception import RequestTransformException
 from .request_initialize_exception import RequestInitializeException
+from .processor_service_exception import ProcessorServiceException
 
-__all__ = ["RequestDataValidationException", "RequestDataEnrichmentException", "RequestTransformException", "RequestInitializeException"]
+__all__ = ["ProcessorServiceException", "RequestDataValidationException", "RequestDataEnrichmentException", "RequestTransformException", "RequestInitializeException"]

@@ -1,5 +1,6 @@
 from common.processor.command_abc import CommandABC
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+from sqlalchemy.orm import Session
 
 class EnrichCommandBase(CommandABC):
 
@@ -22,11 +23,10 @@ class EnrichCommandBase(CommandABC):
     def get_event_region_name(self) -> str:
         pass
 
-    @abstractmethod
-    def is_command_applicable(self) -> bool:
-        return False
+    def is_command_applicable(self, data: dict) -> bool:
+        return data.get("is_applicable")
 
     @abstractmethod
-    def execute(self, data: dict) -> None:
+    def execute(self, data: dict, db_session: Session) -> None:
         pass
 

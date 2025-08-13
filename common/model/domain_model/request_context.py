@@ -1,13 +1,13 @@
 """Model Class"""
-from common.model.enum import Status
-from common.model.enum.data_format import DataFormat
+from common.model.domain_model.enum import Status
+from common.model.domain_model.enum.data_format import DataFormat
 
 class RequestContext:
     """Stores data of current processing request, 
     used to track stages for retry
     """
     def __init__(self,
-                 source: str,
+                 source_data: str,
                  data_format: DataFormat,
                  num_entries: int,
                  status: Status,
@@ -20,5 +20,5 @@ class RequestContext:
         self.has_exception = has_exception
         self.status = status
         self.num_entries = num_entries
-        self.format = data_format
-        self.source = source
+        self.data_format = data_format
+        self.source_data = source_data

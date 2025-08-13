@@ -1,15 +1,15 @@
 from common.processor import EnrichCommandBase
+from sqlalchemy.orm import Session
 
 class RequestDataEnrichCommand(EnrichCommandBase):
-
-    def is_command_applicable(self) -> bool:
-        return True
 
     def __init__(self, service_name: str):
         super().__init__(service_name)
         self.service_name = service_name
 
-    def execute(self, data: dict):
+    def execute(self, data: dict, db_session: Session):
+        if not self.is_command_applicable(data):
+            return data
         print(f"Executing {self.__class__.__name__} for service {self.service_name}")
 
         if not self.is_command_applicable(): return None

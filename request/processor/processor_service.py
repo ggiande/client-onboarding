@@ -1,14 +1,14 @@
 import os
 import csv
-import shutil
-from typing import Any, Dict, List
+
+from sqlalchemy.orm import Session, sessionmaker
 
 from common.model import RequestContext
-from common.model.enum import DataFormat, Status
-from common.model.enum.partner_brand import PartnerBrand
+from common.model.domain_model.enum import Status, DataFormat
+from common.model.domain_model.enum.partner_brand import PartnerBrand
+from config import DatabaseManager
+from exception import ProcessorServiceException
 from request.processor import RequestEventTaskCommand
-
-
 
 class ProcessorService:
     def __init__(self):
@@ -23,9 +23,9 @@ class ProcessorService:
         print(f"Processing task triggered. Scanning {upload_folder}...")
         files_to_process = [f for f in os.listdir(upload_folder) if f.endswith('.csv')]
         if not files_to_process:
-            raise "No CSV files found for processing!"
+            raise ProcessorServiceException({cls.__class__.__name__: "No CSV files found for processing!"})
         processing_summary = []
-        print(f"files_to_process {files_to_process}")
+        session_local: sessionmaker[Session] = DatabaseManager.get_session_local() # Get the session factory once         print(f"files_to_process {files_to_process}")
         for filename in files_to_process:
             file_path: str = os.path.join(upload_folder, filename)
             file_results = {"filename": filename, "total_records": 0, "successful_records": 0, "failed_records": 0}
@@ -36,9 +36,12 @@ class ProcessorService:
                     for chunk in cls.process_csv_in_chunks(f, chunk_size=100):
                             for record_data in chunk:
                                 file_results["total_records"] += 1
+                                db_session: Session = session_local() # Create a new session for each record
                                 task_command = RequestEventTaskCommand(service_name)
                                 try:
-                                    task_command.execute({"context": request_context})
+                                    data = {"context": request_context}
+                                    task_command.execute(data, db_session)
+                                    # db_session.commit() # Commit changes for this record
                                     file_results["successful_records"] += 1
                                 except Exception as e:
                                     file_results["failed_records"] += 1
@@ -51,11 +54,14 @@ class ProcessorService:
                 # print(f"Successfully processed and moved '{filename}' to {processed_folder}")
 
             except Exception as e:
+                db_session.rollback() # Rollback on any error for this record
                 # new_file_path = os.path.join(error_folder, filename)
                 # shutil.move(file_path, new_file_path)
                 file_results["status"] = "failed"
                 file_results["error_message"] = str(e)
                 # print(f"File '{filename}' failed entire processing due to: {e}. Moved to {error_folder}")
+            finally:
+                db_session.close() # Always close the session
 
             processing_summary.append(file_results)
 

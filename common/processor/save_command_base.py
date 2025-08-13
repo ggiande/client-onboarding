@@ -1,6 +1,7 @@
 from abc import abstractmethod
 
 from common.processor import CommandABC
+from sqlalchemy.orm import Session
 
 
 class SaveCommandBase(CommandABC):
@@ -8,7 +9,7 @@ class SaveCommandBase(CommandABC):
         pass
 
     @abstractmethod
-    def execute(self, data: dict) -> None:
+    def execute(self, data: dict, db_session: Session) -> None:
         pass
 
     def handle_exception(self) -> None:
@@ -23,9 +24,8 @@ class SaveCommandBase(CommandABC):
     def get_event_region_name(self) -> str:
         return ""
 
-    @abstractmethod
-    def is_command_applicable(self) -> bool:
-        return False
+    def is_command_applicable(self, data: dict) -> bool:
+        return data["is_applicable"]
 
     @abstractmethod
     def save(self) -> bool:

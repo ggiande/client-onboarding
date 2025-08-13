@@ -1,5 +1,6 @@
 """Abstract Base Class"""
 from abc import ABC, abstractmethod
+from sqlalchemy.orm import Session
 
 class CommandABC(ABC):
     """Interface for the command pattern
@@ -12,11 +13,13 @@ class CommandABC(ABC):
     """
 
     @abstractmethod
-    def execute(self, data: dict) -> None:
+    def execute(self, data: dict, db_session: Session) -> dict:
         """Execute a command
 
         Args:
             data (dict): map passing data, obj request_context
+            :param data: The context data dictionary passed through the chain.
+            :param db_session: The SQLAlchemy database session for this operation.
         """
         pass
 
@@ -34,12 +37,12 @@ class CommandABC(ABC):
 
     @abstractmethod
     def get_event_region_name(self) -> str:
-        return ""
+        pass
 
     @abstractmethod
     def post_process(self) -> None:
         pass
 
     @abstractmethod
-    def is_command_applicable(self) -> bool:
-        return False
+    def is_command_applicable(self, data: dict) -> bool:
+        pass
