@@ -3,7 +3,7 @@ import csv
 
 from sqlalchemy.orm import Session, sessionmaker
 
-from common.model import RequestContext
+from common.model.domain_model import RequestContext
 from common.model.domain_model.enum import Status, DataFormat
 from common.model.domain_model.enum.partner_brand import PartnerBrand
 from config import DatabaseManager

@@ -2,8 +2,8 @@ from overrides import overrides
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
-from common.model import RequestContext
 from common.model.data_model import MHGTProductDetail
+from common.model.domain_model import RequestContext
 from common.model.domain_model.enum import Status
 from common.processor.initialize_command_base import InitializeCommandBase
 from exception import RequestDataValidationException
