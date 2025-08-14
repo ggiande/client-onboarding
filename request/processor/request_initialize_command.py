@@ -1,4 +1,5 @@
 from overrides import overrides
+from setuptools.extern import names
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
@@ -38,7 +39,7 @@ class RequestInitializeCommand(InitializeCommandBase):
             errors[self.__class__.__name__] = "No Request Context Found!!! Bug in the code?"
 
         new_transaction_record = MHGTProductDetail(
-            brand = req_context.brand,
+            brand = None,
             created_by = self.service_name,
             data_format = req_context.data_format,
             has_exception = req_context.has_exception,
@@ -48,6 +49,8 @@ class RequestInitializeCommand(InitializeCommandBase):
             source_data= req_context.source_data,
             status = req_context.status,
             updated_by = self.service_name,
+            names=None
+
         )
 
         try:
@@ -86,3 +89,7 @@ class RequestInitializeCommand(InitializeCommandBase):
     # updated_by VARCHAR(75)
     # );
 
+# TODO: FIX BRAND
+# TODO: FIX NAME
+# TODO: FIX NUM_ENTRIES -> BATCH_SIZE
+# TODO: FIX SOURCE_DATA

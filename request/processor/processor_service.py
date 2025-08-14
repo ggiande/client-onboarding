@@ -92,7 +92,6 @@ class ProcessorService:
         brand = cls.get_brand_name()
         return RequestContext(source, data_format, num_entries, status, has_exception, is_partner_brand, brand)
 
-
     @classmethod
     def get_entries_in_file(cls, file) -> int:
         """
