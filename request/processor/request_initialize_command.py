@@ -50,7 +50,6 @@ class RequestInitializeCommand(InitializeCommandBase):
             status = req_context.status,
             updated_by = self.service_name,
             names=None
-
         )
 
         try:

@@ -34,19 +34,20 @@ class ProcessorService:
                 with open(file_path, 'r', newline='') as f:
                     request_context = cls.get_request_context(f, file_path)
                     for chunk in cls.process_csv_in_chunks(f, chunk_size=100):
-                            for record_data in chunk:
-                                file_results["total_records"] += 1
-                                db_session: Session = session_local() # Create a new session for each record
-                                task_command = RequestEventTaskCommand(service_name)
-                                try:
-                                    data = {"context": request_context}
-                                    task_command.execute(data, db_session)
-                                    # db_session.commit() # Commit changes for this record
-                                    file_results["successful_records"] += 1
-                                except Exception as e:
-                                    file_results["failed_records"] += 1
-                                    print(
-                                        f"Record processing failed for '{record_data.get('id', 'N/A')}' in '{filename}': {e}")
+                        for record_data in chunk:
+                            file_results["total_records"] += 1
+                            db_session: Session = session_local() # Create a new session for each record
+                            task_command = RequestEventTaskCommand(service_name)
+                            try:
+                                data = {"context": request_context}
+                                task_command.execute(data, db_session)
+                                # db_session.commit() # Commit changes for this record
+                                file_results["successful_records"] += 1
+                            #     TODO: IMPL CHECK AND WAIT FOR NUM ENTRIES TO BE PERSISTED IN DB AS CMP PROCESSING
+                            except Exception as e:
+                                file_results["failed_records"] += 1
+                                print(
+                                    f"Record processing failed for '{record_data.get('id', 'N/A')}' in '{filename}': {e}")
 
                 # new_file_path = os.path.join(processed_folder, filename)
                 # shutil.move(file_path, new_file_path)
